@@ -88,6 +88,8 @@ func main() {
 
 	v1Router.Get("/healthz", handlerReadiness)
 
+	v1Router.Post("/register", registerHandler)
+
 	router.Mount("/v1", v1Router)
 	srv := &http.Server{
 		Addr:              ":" + port,
