@@ -1,6 +1,7 @@
 package main
 
 import (
+	"database/sql"
 	"embed"
 	"io"
 	"log"
@@ -8,10 +9,17 @@ import (
 	"os"
 	"time"
 
+	"github.com/SumDeusVitae/cli-assistant/internal/database"
 	"github.com/go-chi/chi"
 	"github.com/go-chi/cors"
 	"github.com/joho/godotenv"
+	_ "github.com/tursodatabase/libsql-client-go/libsql"
 )
+
+type apiConfig struct {
+	DB       *database.Queries
+	platform string
+}
 
 //go:embed static/*
 var staticFiles embed.FS
@@ -25,6 +33,23 @@ func main() {
 	port := os.Getenv("PORT")
 	if port == "" {
 		log.Fatal("PORT environment variable is not set")
+	}
+
+	apiCfg := apiConfig{}
+	platform := os.Getenv("PLATFORM")
+	apiCfg.platform = platform
+	dbURL := os.Getenv("DATABASE_URL")
+	if dbURL == "" {
+		log.Println("DATABASE_URL environment variable is not set")
+		log.Println("Running without CRUD endpoints")
+	} else {
+		db, err := sql.Open("libsql", dbURL)
+		if err != nil {
+			log.Fatal(err)
+		}
+		dbQueries := database.New(db)
+		apiCfg.DB = dbQueries
+		log.Println("Connected to database!")
 	}
 
 	router := chi.NewRouter()
@@ -51,6 +76,15 @@ func main() {
 	})
 
 	v1Router := chi.NewRouter()
+	if apiCfg.DB != nil {
+		v1Router.Post("/register", apiCfg.handlerUsersCreate)
+		v1Router.Post("/login", apiCfg.handlerUsersLogin)
+
+		v1Router.Post("/reset", apiCfg.resetUsersHandler)
+		// v1Router.Get("/users", apiCfg.middlewareAuth(apiCfg.handlerUsersGet))
+		// v1Router.Get("/notes", apiCfg.middlewareAuth(apiCfg.handlerNotesGet))
+		// v1Router.Post("/notes", apiCfg.middlewareAuth(apiCfg.handlerNotesCreate))
+	}
 
 	v1Router.Get("/healthz", handlerReadiness)
 
