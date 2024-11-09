@@ -17,8 +17,9 @@ import (
 )
 
 type apiConfig struct {
-	DB       *database.Queries
-	platform string
+	DB        *database.Queries
+	platform  string
+	GptApiKey string
 }
 
 //go:embed static/*
@@ -38,6 +39,11 @@ func main() {
 	apiCfg := apiConfig{}
 	platform := os.Getenv("PLATFORM")
 	apiCfg.platform = platform
+
+	// ChatGpt ApiKey
+	GptApiKey := os.Getenv("GPT_API_KEY")
+	apiCfg.GptApiKey = GptApiKey
+
 	dbURL := os.Getenv("DATABASE_URL")
 	if dbURL == "" {
 		log.Println("DATABASE_URL environment variable is not set")
@@ -81,7 +87,8 @@ func main() {
 		v1Router.Post("/login", apiCfg.handlerUsersLogin)
 
 		v1Router.Post("/reset", apiCfg.resetUsersHandler)
-		// v1Router.Get("/users", apiCfg.middlewareAuth(apiCfg.handlerUsersGet))
+		v1Router.Get("/whoami", apiCfg.middlewareAuth(apiCfg.handlerUserGet))
+		v1Router.Post("/ask", apiCfg.middlewareAuth(apiCfg.handlerUserRequest))
 		// v1Router.Get("/notes", apiCfg.middlewareAuth(apiCfg.handlerNotesGet))
 		// v1Router.Post("/notes", apiCfg.middlewareAuth(apiCfg.handlerNotesCreate))
 	}
