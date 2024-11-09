@@ -147,7 +147,9 @@ func (cfg *apiConfig) resetUsersHandler(w http.ResponseWriter, r *http.Request) 
 		respondWithError(w, http.StatusInternalServerError, "Couldn't delete users")
 	}
 	w.WriteHeader(http.StatusOK)
-	w.Write([]byte("Everything reset"))
+	if _, err := w.Write([]byte("Everything reset")); err != nil {
+		log.Printf("Failed to write response: %v", err)
+	}
 }
 
 func (cfg *apiConfig) handlerUserGet(w http.ResponseWriter, r *http.Request, user database.User) {
