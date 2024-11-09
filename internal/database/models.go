@@ -8,11 +8,21 @@ import (
 	"database/sql"
 )
 
+type Communication struct {
+	ID        string
+	CreatedAt string
+	UpdatedAt string
+	Model     string
+	Question  string
+	Reply     sql.NullString
+	UserID    string
+}
+
 type User struct {
 	ID             string
 	CreatedAt      string
 	UpdatedAt      string
-	Name           string
+	Login          string
 	Email          sql.NullString
 	HashedPassword string
 	ApiKey         string

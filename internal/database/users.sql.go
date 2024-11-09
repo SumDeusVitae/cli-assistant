@@ -11,7 +11,7 @@ import (
 )
 
 const createUser = `-- name: CreateUser :exec
-INSERT INTO users (id, created_at, updated_at, name, email, hashed_password, api_key)
+INSERT INTO users (id, created_at, updated_at, login, email, hashed_password, api_key)
 VALUES (
     ?,
     ?,
@@ -27,7 +27,7 @@ type CreateUserParams struct {
 	ID             string
 	CreatedAt      string
 	UpdatedAt      string
-	Name           string
+	Login          string
 	Email          sql.NullString
 	HashedPassword string
 	ApiKey         string
@@ -38,7 +38,7 @@ func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) error {
 		arg.ID,
 		arg.CreatedAt,
 		arg.UpdatedAt,
-		arg.Name,
+		arg.Login,
 		arg.Email,
 		arg.HashedPassword,
 		arg.ApiKey,
@@ -58,7 +58,7 @@ func (q *Queries) DeleteUsers(ctx context.Context) error {
 
 const getUser = `-- name: GetUser :one
 
-SELECT id, created_at, updated_at, name, email, hashed_password, api_key FROM users WHERE api_key = ?
+SELECT id, created_at, updated_at, login, email, hashed_password, api_key FROM users WHERE api_key = ?
 `
 
 func (q *Queries) GetUser(ctx context.Context, apiKey string) (User, error) {
@@ -68,7 +68,7 @@ func (q *Queries) GetUser(ctx context.Context, apiKey string) (User, error) {
 		&i.ID,
 		&i.CreatedAt,
 		&i.UpdatedAt,
-		&i.Name,
+		&i.Login,
 		&i.Email,
 		&i.HashedPassword,
 		&i.ApiKey,
@@ -76,19 +76,19 @@ func (q *Queries) GetUser(ctx context.Context, apiKey string) (User, error) {
 	return i, err
 }
 
-const getUserByName = `-- name: GetUserByName :one
+const getUserByLogin = `-- name: GetUserByLogin :one
 
-SELECT id, created_at, updated_at, name, email, hashed_password, api_key FROM users where name = ?
+SELECT id, created_at, updated_at, login, email, hashed_password, api_key FROM users where login = ?
 `
 
-func (q *Queries) GetUserByName(ctx context.Context, name string) (User, error) {
-	row := q.db.QueryRowContext(ctx, getUserByName, name)
+func (q *Queries) GetUserByLogin(ctx context.Context, login string) (User, error) {
+	row := q.db.QueryRowContext(ctx, getUserByLogin, login)
 	var i User
 	err := row.Scan(
 		&i.ID,
 		&i.CreatedAt,
 		&i.UpdatedAt,
-		&i.Name,
+		&i.Login,
 		&i.Email,
 		&i.HashedPassword,
 		&i.ApiKey,

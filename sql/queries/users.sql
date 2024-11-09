@@ -1,5 +1,5 @@
 -- name: CreateUser :exec
-INSERT INTO users (id, created_at, updated_at, name, email, hashed_password, api_key)
+INSERT INTO users (id, created_at, updated_at, login, email, hashed_password, api_key)
 VALUES (
     ?,
     ?,
@@ -19,6 +19,6 @@ SELECT * FROM users WHERE api_key = ?;
 DELETE FROM users;
 --
 
--- name: GetUserByName :one
-SELECT * FROM users where name = ?;
+-- name: GetUserByLogin :one
+SELECT * FROM users where login = ?;
 --

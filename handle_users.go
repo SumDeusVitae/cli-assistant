@@ -23,7 +23,7 @@ func (cfg *apiConfig) handlerUsersCreate(w http.ResponseWriter, r *http.Request)
 		Valid  bool   `json:"valid"` // Valid is true if String is not NULL
 	}
 	type parameters struct {
-		Name     string `json:"name"`
+		Login    string `json:"login"`
 		Password string `json:"password"`
 		Email    Email  `json:"email"`
 	}
@@ -57,7 +57,7 @@ func (cfg *apiConfig) handlerUsersCreate(w http.ResponseWriter, r *http.Request)
 		ID:             uuid.New().String(),
 		CreatedAt:      time.Now().UTC().Format(time.RFC3339),
 		UpdatedAt:      time.Now().UTC().Format(time.RFC3339),
-		Name:           params.Name,
+		Login:          params.Login,
 		Email:          email,
 		HashedPassword: hashed_password,
 		ApiKey:         apiKey,
@@ -91,7 +91,7 @@ func (cfg *apiConfig) handlerUsersCreate(w http.ResponseWriter, r *http.Request)
 func (cfg *apiConfig) handlerUsersLogin(w http.ResponseWriter, r *http.Request) {
 	decoder := json.NewDecoder(r.Body)
 	params := struct {
-		Name     string `json:"name"`
+		Login    string `json:"login"`
 		Password string `json:"password"`
 	}{}
 	err := decoder.Decode(&params)
@@ -100,11 +100,11 @@ func (cfg *apiConfig) handlerUsersLogin(w http.ResponseWriter, r *http.Request) 
 		respondWithError(w, http.StatusInternalServerError, "Couldn't decode parameters")
 		return
 	}
-	user, err := cfg.DB.GetUserByName(r.Context(), params.Name)
+	user, err := cfg.DB.GetUserByLogin(r.Context(), params.Login)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			log.Println(err)
-			respondWithError(w, http.StatusUnauthorized, "Incorrect name or password")
+			respondWithError(w, http.StatusUnauthorized, "Incorrect login or password")
 			return
 		}
 		log.Println(err)
@@ -114,7 +114,7 @@ func (cfg *apiConfig) handlerUsersLogin(w http.ResponseWriter, r *http.Request) 
 	err = auth.CheckPasswordHash(user.HashedPassword, params.Password)
 	if err != nil {
 		log.Println(err)
-		respondWithError(w, http.StatusUnauthorized, "Incorrect name or password")
+		respondWithError(w, http.StatusUnauthorized, "Incorrect login or password")
 	}
 	userResp, err := databaseUserToUser(user)
 	if err != nil {
@@ -147,5 +147,17 @@ func (cfg *apiConfig) resetUsersHandler(w http.ResponseWriter, r *http.Request) 
 		respondWithError(w, http.StatusInternalServerError, "Couldn't delete users")
 	}
 	w.WriteHeader(http.StatusOK)
-	w.Write([]byte("Everything reset"))
+	if _, err := w.Write([]byte("Everything reset")); err != nil {
+		log.Printf("Failed to write response: %v", err)
+	}
+}
+
+func (cfg *apiConfig) handlerUserGet(w http.ResponseWriter, r *http.Request, user database.User) {
+	userResp, err := databaseUserToUser(user)
+	if err != nil {
+		log.Println(err)
+		respondWithError(w, http.StatusInternalServerError, "Couldn't convers user")
+		return
+	}
+	respondWithJSON(w, http.StatusOK, userResp)
 }
