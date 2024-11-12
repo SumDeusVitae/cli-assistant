@@ -122,7 +122,7 @@ func (cfg *apiConfig) handlerUsersLogin(w http.ResponseWriter, r *http.Request) 
 		respondWithError(w, http.StatusInternalServerError, "Couldn't convert user")
 		return
 	}
-	respondWithJSON(w, http.StatusCreated, userResp)
+	respondWithJSON(w, http.StatusOK, userResp)
 
 }
 
