@@ -12,6 +12,7 @@ jobs:
 
     env:
         DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        GPT_API_KEY: ${{ secrets.GPT_API_KEY }}
 
     steps:
       - name: Check out code
@@ -47,4 +48,4 @@ jobs:
         run: scripts/migrateup.sh
 
       - name: 'Deploy to Cloud Run'
-        run: gcloud run deploy notely --image us-central1-docker.pkg.dev/cliassistantserver/notely-ar-repo/notely:latest --region us-central1 --allow-unauthenticated --project cliassistantserver --max-instances=100
+        run: gcloud run deploy cliassistantserver --image us-central1-docker.pkg.dev/cliassistantserver/cliassistantserver-ar-repo/cliassistantserver:latest --region us-central1 --allow-unauthenticated --project cliassistantserver --max-instances=100
