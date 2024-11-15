@@ -80,6 +80,19 @@ func main() {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 		}
 	})
+	// Serve the styles.css file
+	router.Get("/static/styles.css", func(w http.ResponseWriter, r *http.Request) {
+		f, err := staticFiles.Open("static/styles.css")
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		defer f.Close()
+		w.Header().Set("Content-Type", "text/css") // Ensure the correct content type for CSS
+		if _, err := io.Copy(w, f); err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+		}
+	})
 
 	v1Router := chi.NewRouter()
 	if apiCfg.DB != nil {
